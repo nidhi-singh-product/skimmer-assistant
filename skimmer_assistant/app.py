@@ -713,6 +713,73 @@ def render_sources(metadatas: List[Dict]) -> None:
             """, unsafe_allow_html=True)
 
 
+def render_feedback_buttons(response_idx: int) -> None:
+    """
+    Render thumbs up/down feedback buttons for response quality tracking.
+
+    This helps measure AI quality and identify areas for improvement.
+    Feedback is stored in session state for now (could be sent to analytics later).
+
+    Args:
+        response_idx: Index of the response for unique button keys
+    """
+    # Initialize feedback storage
+    if "feedback" not in st.session_state:
+        st.session_state.feedback = {}
+
+    feedback_key = f"feedback_{response_idx}"
+    current_feedback = st.session_state.feedback.get(feedback_key)
+
+    st.markdown("""
+    <div style="margin-top: 8px;">
+        <span style="font-size: 0.75rem; color: #919EAB; margin-right: 8px;">Was this helpful?</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1, 10])
+
+    with col1:
+        if current_feedback == "up":
+            st.markdown("✅")
+        elif st.button("👍", key=f"up_{response_idx}", help="This was helpful"):
+            st.session_state.feedback[feedback_key] = "up"
+            st.rerun()
+
+    with col2:
+        if current_feedback == "down":
+            st.markdown("❌")
+        elif st.button("👎", key=f"down_{response_idx}", help="This needs improvement"):
+            st.session_state.feedback[feedback_key] = "down"
+            st.rerun()
+
+
+def render_disclaimer() -> None:
+    """
+    Render the AI disclaimer at the bottom of the page.
+
+    Important for setting expectations and legal protection.
+    """
+    st.markdown("""
+    <div style="
+        text-align: center;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border-top: 1px solid #E9EAEB;
+        color: #919EAB;
+        font-size: 0.75rem;
+        font-family: 'Roboto', sans-serif;
+    ">
+        <p style="margin: 0;">
+            🤖 <strong>Powered by AI</strong> · Responses are generated using artificial intelligence and may not always be accurate.
+            <br>Always verify critical information and follow manufacturer guidelines.
+        </p>
+        <p style="margin: 8px 0 0 0; font-size: 0.7rem;">
+            © 2025 Skimmer Pro · Pool Service Knowledge Base POC
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_sidebar(api_key: str, collection: Optional[chromadb.Collection]) -> None:
     """
     Render the sidebar with settings and controls.
@@ -853,6 +920,7 @@ def main() -> None:
             # Add Read Aloud button for assistant messages
             if message["role"] == "assistant":
                 render_read_aloud_button(message["content"], f"history_{idx}")
+                render_feedback_buttons(idx)  # Add feedback buttons
             if "sources" in message and message["sources"]:
                 render_sources(message["sources"])
 
@@ -925,6 +993,9 @@ def main() -> None:
                         "role": "assistant",
                         "content": response
                     })
+
+    # Render disclaimer at the bottom
+    render_disclaimer()
 
 
 # Entry point
