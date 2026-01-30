@@ -505,15 +505,44 @@ def render_header():
 
 
 def render_hero():
-    """Render the hero section with quick actions"""
+    """Render the hero section with quick actions and photo upload"""
     st.markdown("""
-    <div class="hero-section">
-        <h1 class="hero-title">What can I help you with?</h1>
-        <p class="hero-subtitle">Your AI-powered pool service expert. Ask about water chemistry, equipment repair, troubleshooting, and more.</p>
+    <div style="text-align: center; padding: 2rem 1rem; max-width: 600px; margin: 0 auto;">
+        <h1 style="font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 700; color: #160F4E; margin-bottom: 0.75rem; letter-spacing: -0.02em;">What can I help you with?</h1>
+        <p style="font-family: 'Roboto', sans-serif; font-size: 1.1rem; color: #637381; margin-bottom: 1.5rem;">Your AI-powered pool service expert. Ask about water chemistry, equipment repair, troubleshooting, and more.</p>
     </div>
     """, unsafe_allow_html=True)
 
+    # Photo upload section - prominent in main area
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 1rem;">
+        <p style="font-family: 'Roboto', sans-serif; font-size: 0.9rem; color: #637381;">📷 Have a photo of an issue? Upload it below!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Centered file uploader
+    col_left, col_center, col_right = st.columns([1, 2, 1])
+    with col_center:
+        uploaded_image = st.file_uploader(
+            "Upload a photo of pool equipment, water issues, or error codes",
+            type=["jpg", "jpeg", "png"],
+            key="hero_image_uploader",
+            help="Take a photo and upload it to get AI-powered diagnosis"
+        )
+        if uploaded_image:
+            st.image(uploaded_image, use_container_width=True)
+            st.session_state.uploaded_image = uploaded_image.getvalue()
+            st.success("✓ Photo uploaded! Now ask a question about it below.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # Quick action suggestions
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 0.5rem;">
+        <p style="font-family: 'Roboto', sans-serif; font-size: 0.85rem; color: #919EAB;">Or try a quick question:</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("💧 Balance pH levels", use_container_width=True):
