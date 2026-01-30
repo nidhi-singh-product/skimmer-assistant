@@ -488,12 +488,17 @@ Be specific with exact numbers and procedures from the context. If you can't ide
 
 def render_header():
     """Render the Skimmer header"""
-    st.markdown(f"""
-    <div class="skimmer-header">
-        <div class="skimmer-logo">
-            {SKIMMER_LOGO_SVG}
-            <span class="skimmer-logo-text">Skimmer Assistant</span>
-            <span class="skimmer-logo-badge">AI</span>
+    st.markdown("""
+    <div style="display: flex; align-items: center; justify-content: center; padding: 1.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid #E9EAEB;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 40px; height: 40px;">
+                <path d="M20 4C15 4 8 8 8 16C8 24 14 32 20 36C26 32 32 24 32 16C32 8 25 4 20 4Z" stroke="#256295" stroke-width="2.5" fill="none"/>
+                <path d="M14 16C14 16 16 14 20 14C24 14 26 16 26 16" stroke="#256295" stroke-width="2" stroke-linecap="round"/>
+                <path d="M16 20C16 20 17.5 18.5 20 18.5C22.5 18.5 24 20 24 20" stroke="#256295" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="20" cy="24" r="1.5" fill="#256295"/>
+            </svg>
+            <span style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; color: #256295; letter-spacing: -0.02em;">Skimmer Assistant</span>
+            <span style="background: #AEEBF3; color: #256295; font-family: 'Roboto', sans-serif; font-size: 0.7rem; font-weight: 500; padding: 2px 8px; border-radius: 12px;">AI</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
