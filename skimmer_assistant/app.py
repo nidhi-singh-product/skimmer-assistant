@@ -43,6 +43,8 @@ import os
 import base64
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
+import streamlit.components.v1 as components
+import hashlib
 
 # =============================================================================
 # CONFIGURATION
@@ -461,6 +463,125 @@ Be specific with exact numbers and procedures from the context. If you can't ide
 # UI COMPONENTS
 # =============================================================================
 
+def render_read_aloud_button(text: str, button_key: str) -> None:
+    """
+    Render a "Read Aloud" button that uses the browser's Speech Synthesis API.
+
+    This enables hands-free operation for field technicians who may be working
+    with equipment and can't easily read a screen.
+
+    Args:
+        text: The text content to be read aloud
+        button_key: Unique key for the button (to handle multiple buttons)
+
+    Technical Notes:
+        - Uses Web Speech API (built into modern browsers)
+        - Works on mobile devices (iOS Safari, Android Chrome)
+        - No API costs - runs entirely in the browser
+        - Falls back gracefully if speech synthesis unavailable
+    """
+    # Escape text for JavaScript (handle quotes and newlines)
+    escaped_text = text.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+
+    # Create unique ID for this button instance
+    button_id = hashlib.md5(button_key.encode()).hexdigest()[:8]
+
+    # HTML/JavaScript component for text-to-speech
+    tts_html = f"""
+    <div style="margin: 10px 0;">
+        <button id="tts-btn-{button_id}" onclick="toggleSpeech_{button_id}()" style="
+            background: linear-gradient(135deg, #256295 0%, #4795EC 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(37, 98, 149, 0.2);
+        " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(37, 98, 149, 0.3)';"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(37, 98, 149, 0.2)';">
+            <span id="tts-icon-{button_id}">🔊</span>
+            <span id="tts-text-{button_id}">Read Aloud</span>
+        </button>
+    </div>
+
+    <script>
+        let speaking_{button_id} = false;
+        let utterance_{button_id} = null;
+
+        function toggleSpeech_{button_id}() {{
+            const btn = document.getElementById('tts-btn-{button_id}');
+            const icon = document.getElementById('tts-icon-{button_id}');
+            const text = document.getElementById('tts-text-{button_id}');
+
+            if (!('speechSynthesis' in window)) {{
+                alert('Sorry, your browser does not support text-to-speech.');
+                return;
+            }}
+
+            if (speaking_{button_id}) {{
+                // Stop speaking
+                window.speechSynthesis.cancel();
+                speaking_{button_id} = false;
+                icon.textContent = '🔊';
+                text.textContent = 'Read Aloud';
+                btn.style.background = 'linear-gradient(135deg, #256295 0%, #4795EC 100%)';
+            }} else {{
+                // Start speaking
+                const content = `{escaped_text}`;
+                utterance_{button_id} = new SpeechSynthesisUtterance(content);
+                utterance_{button_id}.rate = 0.9;  // Slightly slower for clarity
+                utterance_{button_id}.pitch = 1.0;
+
+                // Try to use a natural-sounding voice
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v =>
+                    v.name.includes('Samantha') ||
+                    v.name.includes('Google') ||
+                    v.name.includes('Microsoft') ||
+                    v.lang.startsWith('en')
+                );
+                if (preferredVoice) {{
+                    utterance_{button_id}.voice = preferredVoice;
+                }}
+
+                utterance_{button_id}.onend = function() {{
+                    speaking_{button_id} = false;
+                    icon.textContent = '🔊';
+                    text.textContent = 'Read Aloud';
+                    btn.style.background = 'linear-gradient(135deg, #256295 0%, #4795EC 100%)';
+                }};
+
+                utterance_{button_id}.onerror = function() {{
+                    speaking_{button_id} = false;
+                    icon.textContent = '🔊';
+                    text.textContent = 'Read Aloud';
+                    btn.style.background = 'linear-gradient(135deg, #256295 0%, #4795EC 100%)';
+                }};
+
+                window.speechSynthesis.speak(utterance_{button_id});
+                speaking_{button_id} = true;
+                icon.textContent = '⏹️';
+                text.textContent = 'Stop';
+                btn.style.background = 'linear-gradient(135deg, #FB8B24 0%, #FF6B6B 100%)';
+            }}
+        }}
+
+        // Load voices (needed for some browsers)
+        if ('speechSynthesis' in window) {{
+            window.speechSynthesis.getVoices();
+        }}
+    </script>
+    """
+
+    components.html(tts_html, height=50)
+
+
 def render_header() -> None:
     """Render the Skimmer-branded header with logo."""
     st.markdown("""
@@ -726,9 +847,12 @@ def main() -> None:
         render_hero()
 
     # Display chat history
-    for message in st.session_state.messages:
+    for idx, message in enumerate(st.session_state.messages):
         with st.chat_message(message["role"], avatar="🏊" if message["role"] == "assistant" else None):
             st.markdown(message["content"])
+            # Add Read Aloud button for assistant messages
+            if message["role"] == "assistant":
+                render_read_aloud_button(message["content"], f"history_{idx}")
             if "sources" in message and message["sources"]:
                 render_sources(message["sources"])
 
@@ -784,6 +908,9 @@ def main() -> None:
                     response = "I couldn't find relevant information for that question in my knowledge base."
 
                 st.markdown(response)
+
+                # Add Read Aloud button for the new response
+                render_read_aloud_button(response, f"new_{len(st.session_state.messages)}")
 
                 # Show sources and save to history
                 if metadatas:
