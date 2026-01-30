@@ -3,6 +3,10 @@
 .env
 *.env
 
+# Node (if using any JS tools)
+node_modules/
+package-lock.json
+
 # Python
 __pycache__/
 *.py[cod]

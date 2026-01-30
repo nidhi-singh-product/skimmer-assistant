@@ -1,6 +1,39 @@
 """
 Skimmer Assistant - Pool Pro Knowledge Base
-A beautifully designed RAG-powered chat app for pool service technicians
+============================================
+
+A RAG (Retrieval-Augmented Generation) powered chat application for pool service
+technicians. Built with Streamlit, ChromaDB, and OpenAI.
+
+Architecture Overview:
+---------------------
+1. Knowledge Base: Markdown files in ../topic_guides/ are chunked and embedded
+   into ChromaDB vector database for semantic search.
+
+2. Query Flow:
+   - User asks a question (text or with image)
+   - Question is embedded and matched against knowledge base
+   - Top 5 relevant chunks are retrieved
+   - GPT-4o-mini generates response using retrieved context
+
+3. Image Analysis:
+   - Users can upload photos of pool equipment/issues
+   - GPT-4o Vision analyzes the image
+   - Knowledge base context augments the visual analysis
+
+Dependencies:
+------------
+- streamlit: Web UI framework
+- chromadb: Vector database for embeddings
+- openai: GPT-4o and embedding models
+
+Environment Variables:
+---------------------
+- OPENAI_API_KEY: Required for embeddings and chat completion
+
+Author: Skimmer Pro Team
+Version: 1.0.0 (POC)
+Last Updated: January 2025
 """
 
 import streamlit as st
@@ -9,8 +42,13 @@ from chromadb.utils import embedding_functions
 import os
 import base64
 from pathlib import Path
+from typing import List, Dict, Optional, Tuple
 
-# Page config
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Streamlit page configuration - must be first Streamlit command
 st.set_page_config(
     page_title="Skimmer Assistant",
     page_icon="🏊",
@@ -18,360 +56,233 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Skimmer Brand Colors
+# Skimmer Brand Colors - matches company style guide
 COLORS = {
-    "navy": "#160F4E",
-    "skimmer_dark": "#256295",
-    "skimmer_light": "#4795EC",
-    "mint": "#AEEBF3",
-    "sunrise": "#FB8B24",
-    "text_dark": "#212B36",
-    "text_medium": "#637381",
-    "bg_light": "#F9FAFB",
-    "white": "#FFFFFF"
+    "navy": "#160F4E",           # Primary dark - headers, emphasis
+    "skimmer_dark": "#256295",   # Primary blue - buttons, links
+    "skimmer_light": "#4795EC",  # Secondary blue - hover states
+    "mint": "#AEEBF3",           # Accent - badges, highlights
+    "sunrise": "#FB8B24",        # Warning/attention color
+    "text_dark": "#212B36",      # Primary text
+    "text_medium": "#637381",    # Secondary text
+    "bg_light": "#F9FAFB",       # Background
+    "white": "#FFFFFF"           # Cards, inputs
 }
 
-# Custom CSS - Perplexity-inspired with Skimmer branding
-st.markdown(f"""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap');
+# Model configuration
+EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI embedding model
+CHAT_MODEL = "gpt-4o-mini"                  # For text responses
+VISION_MODEL = "gpt-4o"                     # For image analysis
 
-    /* Global styles */
-    .stApp {{
-        background: linear-gradient(180deg, {COLORS['white']} 0%, {COLORS['bg_light']} 100%);
-    }}
-
-    /* Hide default Streamlit elements */
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    header {{visibility: hidden;}}
-
-    /* Custom header */
-    .skimmer-header {{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1.5rem 0;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid #E9EAEB;
-    }}
-
-    .skimmer-logo {{
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }}
-
-    .skimmer-logo svg {{
-        width: 40px;
-        height: 40px;
-    }}
-
-    .skimmer-logo-text {{
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: {COLORS['skimmer_dark']};
-        letter-spacing: -0.02em;
-    }}
-
-    .skimmer-logo-badge {{
-        background: {COLORS['mint']};
-        color: {COLORS['skimmer_dark']};
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.7rem;
-        font-weight: 500;
-        padding: 2px 8px;
-        border-radius: 12px;
-        margin-left: 8px;
-    }}
-
-    /* Hero section - shown when no messages */
-    .hero-section {{
-        text-align: center;
-        padding: 3rem 1rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }}
-
-    .hero-title {{
-        font-family: 'Outfit', sans-serif;
-        font-size: 2.25rem;
-        font-weight: 700;
-        color: {COLORS['navy']};
-        margin-bottom: 0.75rem;
-        letter-spacing: -0.02em;
-    }}
-
-    .hero-subtitle {{
-        font-family: 'Roboto', sans-serif;
-        font-size: 1.1rem;
-        color: {COLORS['text_medium']};
-        margin-bottom: 2rem;
-    }}
-
-    /* Quick action buttons */
-    .quick-actions {{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-        margin-top: 1.5rem;
-    }}
-
-    .quick-action {{
-        background: {COLORS['white']};
-        border: 1px solid #E9EAEB;
-        border-radius: 20px;
-        padding: 8px 16px;
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.875rem;
-        color: {COLORS['text_dark']};
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-    }}
-
-    .quick-action:hover {{
-        border-color: {COLORS['skimmer_dark']};
-        background: {COLORS['bg_light']};
-    }}
-
-    /* Chat message styles */
-    .stChatMessage {{
-        background: transparent !important;
-        padding: 1rem 0 !important;
-    }}
-
-    /* User message */
-    [data-testid="stChatMessageContent"] {{
-        font-family: 'Roboto', sans-serif !important;
-        font-size: 1rem !important;
-        line-height: 1.6 !important;
-    }}
-
-    /* Response card */
-    .response-card {{
-        background: {COLORS['white']};
-        border: 1px solid #E9EAEB;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }}
-
-    .response-card p {{
-        font-family: 'Roboto', sans-serif;
-        font-size: 1rem;
-        line-height: 1.7;
-        color: {COLORS['text_dark']};
-    }}
-
-    /* Sources section */
-    .sources-section {{
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #E9EAEB;
-    }}
-
-    .sources-title {{
-        font-family: 'Outfit', sans-serif;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: {COLORS['text_medium']};
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.75rem;
-    }}
-
-    .source-chip {{
-        display: inline-flex;
-        align-items: center;
-        background: {COLORS['bg_light']};
-        border: 1px solid #E9EAEB;
-        border-radius: 8px;
-        padding: 6px 12px;
-        margin: 4px;
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.8rem;
-        color: {COLORS['skimmer_dark']};
-    }}
-
-    .source-chip:hover {{
-        background: {COLORS['mint']};
-        border-color: {COLORS['skimmer_light']};
-    }}
-
-    /* Image upload area */
-    .image-upload-area {{
-        background: {COLORS['white']};
-        border: 2px dashed #D2D4D6;
-        border-radius: 12px;
-        padding: 2rem;
-        text-align: center;
-        margin: 1rem 0;
-        transition: all 0.2s ease;
-    }}
-
-    .image-upload-area:hover {{
-        border-color: {COLORS['skimmer_dark']};
-        background: {COLORS['bg_light']};
-    }}
-
-    .image-preview {{
-        max-width: 300px;
-        border-radius: 12px;
-        margin: 1rem auto;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }}
-
-    /* Input styling */
-    .stChatInput {{
-        border-color: #E9EAEB !important;
-    }}
-
-    .stChatInput > div {{
-        border-radius: 24px !important;
-        border: 2px solid #E9EAEB !important;
-        background: {COLORS['white']} !important;
-    }}
-
-    .stChatInput > div:focus-within {{
-        border-color: {COLORS['skimmer_dark']} !important;
-        box-shadow: 0 0 0 3px rgba(37, 98, 149, 0.1) !important;
-    }}
-
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {{
-        background: {COLORS['white']};
-        border-right: 1px solid #E9EAEB;
-    }}
-
-    [data-testid="stSidebar"] .stMarkdown h3 {{
-        font-family: 'Outfit', sans-serif;
-        color: {COLORS['navy']};
-    }}
-
-    /* Button styling */
-    .stButton > button {{
-        font-family: 'Roboto', sans-serif;
-        font-weight: 500;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }}
-
-    .stButton > button[kind="primary"] {{
-        background: {COLORS['skimmer_dark']};
-        border: none;
-    }}
-
-    .stButton > button[kind="primary"]:hover {{
-        background: {COLORS['navy']};
-    }}
-
-    /* Status badges */
-    .status-badge {{
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }}
-
-    .status-success {{
-        background: #E6F7ED;
-        color: #1B7F4A;
-    }}
-
-    .status-warning {{
-        background: #FEF3E5;
-        color: #B45309;
-    }}
-
-    /* Expander styling */
-    .streamlit-expanderHeader {{
-        font-family: 'Roboto', sans-serif !important;
-        font-size: 0.9rem !important;
-        color: {COLORS['text_medium']} !important;
-    }}
-
-    /* Image upload button */
-    .upload-btn {{
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: {COLORS['bg_light']};
-        border: 1px solid #E9EAEB;
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.875rem;
-        color: {COLORS['text_dark']};
-        cursor: pointer;
-        margin-bottom: 1rem;
-    }}
-
-    /* Wave decoration at bottom */
-    .wave-decoration {{
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 100px;
-        pointer-events: none;
-        z-index: -1;
-        opacity: 0.1;
-    }}
-</style>
-""", unsafe_allow_html=True)
-
-# Skimmer Logo SVG
-SKIMMER_LOGO_SVG = """
-<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 4C15 4 8 8 8 16C8 24 14 32 20 36C26 32 32 24 32 16C32 8 25 4 20 4Z" stroke="#256295" stroke-width="2.5" fill="none"/>
-    <path d="M14 16C14 16 16 14 20 14C24 14 26 16 26 16" stroke="#256295" stroke-width="2" stroke-linecap="round"/>
-    <path d="M16 20C16 20 17.5 18.5 20 18.5C22.5 18.5 24 20 24 20" stroke="#256295" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="20" cy="24" r="1.5" fill="#256295"/>
-</svg>
-"""
+# RAG configuration
+CHUNK_RESULTS = 5        # Number of chunks to retrieve per query
+MAX_RESPONSE_TOKENS = 1000
+TEMPERATURE = 0.3        # Lower = more focused responses
 
 
-def get_api_key():
-    """Get API key from secrets (cloud) or session state (local)"""
+# =============================================================================
+# STYLES
+# =============================================================================
+
+def load_custom_css() -> None:
+    """
+    Inject custom CSS for Perplexity-inspired UI with Skimmer branding.
+
+    Design Philosophy:
+    - Clean, minimal interface inspired by Perplexity.ai
+    - Skimmer brand colors and typography
+    - Mobile-responsive layout
+    - Accessible color contrast ratios
+    """
+    st.markdown(f"""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap');
+
+        /* Global styles */
+        .stApp {{
+            background: linear-gradient(180deg, {COLORS['white']} 0%, {COLORS['bg_light']} 100%);
+        }}
+
+        /* Hide default Streamlit chrome for cleaner look */
+        #MainMenu {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
+        header {{visibility: hidden;}}
+
+        /* Chat message styling */
+        .stChatMessage {{
+            background: transparent !important;
+            padding: 1rem 0 !important;
+        }}
+
+        [data-testid="stChatMessageContent"] {{
+            font-family: 'Roboto', sans-serif !important;
+            font-size: 1rem !important;
+            line-height: 1.6 !important;
+        }}
+
+        /* Input field styling */
+        .stChatInput > div {{
+            border-radius: 24px !important;
+            border: 2px solid #E9EAEB !important;
+            background: {COLORS['white']} !important;
+        }}
+
+        .stChatInput > div:focus-within {{
+            border-color: {COLORS['skimmer_dark']} !important;
+            box-shadow: 0 0 0 3px rgba(37, 98, 149, 0.1) !important;
+        }}
+
+        /* Sidebar styling */
+        [data-testid="stSidebar"] {{
+            background: {COLORS['white']};
+            border-right: 1px solid #E9EAEB;
+        }}
+
+        [data-testid="stSidebar"] .stMarkdown h3 {{
+            font-family: 'Outfit', sans-serif;
+            color: {COLORS['navy']};
+        }}
+
+        /* Button styling */
+        .stButton > button {{
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }}
+
+        .stButton > button[kind="primary"] {{
+            background: {COLORS['skimmer_dark']};
+            border: none;
+        }}
+
+        .stButton > button[kind="primary"]:hover {{
+            background: {COLORS['navy']};
+        }}
+
+        /* Status badges */
+        .status-badge {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }}
+
+        .status-success {{
+            background: #E6F7ED;
+            color: #1B7F4A;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
+
+# =============================================================================
+# API KEY MANAGEMENT
+# =============================================================================
+
+def get_api_key() -> str:
+    """
+    Retrieve OpenAI API key from available sources.
+
+    Priority order:
+    1. Streamlit secrets (for Streamlit Cloud deployment)
+    2. Environment variable (for local development)
+    3. Session state (user-entered in sidebar)
+
+    Returns:
+        str: API key or empty string if not found
+
+    Security Note:
+        API keys should never be committed to version control.
+        Use .streamlit/secrets.toml locally or Streamlit Cloud secrets in production.
+    """
+    # Check Streamlit secrets first (production)
     if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
         return st.secrets['OPENAI_API_KEY']
+
+    # Check environment variable (local development)
     if os.getenv("OPENAI_API_KEY"):
         return os.getenv("OPENAI_API_KEY")
+
+    # Fall back to user-entered key in session
     return st.session_state.get("openai_api_key", "")
 
 
+# =============================================================================
+# VECTOR DATABASE
+# =============================================================================
+
 @st.cache_resource
-def init_chromadb(_api_key):
-    """Initialize ChromaDB with OpenAI embeddings"""
+def init_chromadb(_api_key: str) -> Tuple[Optional[chromadb.Client], Optional[chromadb.Collection]]:
+    """
+    Initialize ChromaDB client and collection with OpenAI embeddings.
+
+    Uses Streamlit's cache_resource decorator to persist across reruns.
+    The underscore prefix on _api_key prevents Streamlit from hashing it.
+
+    Args:
+        _api_key: OpenAI API key for embedding function
+
+    Returns:
+        Tuple of (client, collection) or (None, None) if initialization fails
+
+    Technical Notes:
+        - Uses in-memory ChromaDB (resets on app restart)
+        - For production, consider persistent storage with chromadb.PersistentClient
+        - Embedding dimension: 1536 (text-embedding-3-small)
+    """
     if not _api_key:
         return None, None
+
+    # Configure OpenAI embedding function
     openai_ef = embedding_functions.OpenAIEmbeddingFunction(
         api_key=_api_key,
-        model_name="text-embedding-3-small"
+        model_name=EMBEDDING_MODEL
     )
+
+    # Create in-memory client
     client = chromadb.Client()
+
+    # Get or create the knowledge base collection
     collection = client.get_or_create_collection(
         name="pool_knowledge",
         embedding_function=openai_ef,
         metadata={"description": "Pool service technician knowledge base"}
     )
+
     return client, collection
 
 
-def load_guides(collection):
-    """Load markdown guides into the vector database"""
+def load_guides(collection: chromadb.Collection) -> int:
+    """
+    Load and chunk markdown guides into the vector database.
+
+    Chunking Strategy:
+    - Split on H2 headers (## ) to create semantic chunks
+    - Each chunk includes its header for context
+    - Metadata tracks source file, topic, and section
+
+    Args:
+        collection: ChromaDB collection to load documents into
+
+    Returns:
+        int: Number of chunks loaded
+
+    File Structure Expected:
+        topic_guides/
+        ├── 01_water_chemistry.md
+        ├── 02_equipment_pumps.md
+        └── ...
+    """
+    # Try multiple paths to find topic_guides (handles different deployments)
     possible_paths = [
-        Path(__file__).parent.parent / "topic_guides",
-        Path("topic_guides"),
-        Path("../topic_guides"),
+        Path(__file__).parent.parent / "topic_guides",  # Standard structure
+        Path("topic_guides"),                            # Current directory
+        Path("../topic_guides"),                         # Parent directory
     ]
 
     guides_path = None
@@ -384,32 +295,45 @@ def load_guides(collection):
         st.error("Topic guides folder not found!")
         return 0
 
-    documents, metadatas, ids = [], [], []
+    documents: List[str] = []
+    metadatas: List[Dict] = []
+    ids: List[str] = []
     doc_id = 0
 
+    # Process each markdown file
     for guide_file in sorted(guides_path.glob("*.md")):
+        # Skip README
         if guide_file.name == "README.md":
             continue
 
         content = guide_file.read_text()
+
+        # Extract topic name from filename (e.g., "01_water_chemistry.md" -> "Water Chemistry")
         topic = guide_file.stem.replace("_", " ").title()
         if topic[0:2].isdigit():
-            topic = topic[3:]
+            topic = topic[3:]  # Remove number prefix
 
-        chunks, current_chunk, current_header = [], "", topic
+        # Chunk by H2 headers
+        chunks: List[Dict] = []
+        current_chunk = ""
+        current_header = topic
+
         for line in content.split("\n"):
             if line.startswith("## "):
+                # Save previous chunk
                 if current_chunk.strip():
                     chunks.append({
                         "content": current_chunk.strip(),
                         "header": current_header,
                         "source": guide_file.name
                     })
+                # Start new chunk
                 current_header = line[3:].strip()
                 current_chunk = line + "\n"
             else:
                 current_chunk += line + "\n"
 
+        # Don't forget the last chunk
         if current_chunk.strip():
             chunks.append({
                 "content": current_chunk.strip(),
@@ -417,6 +341,7 @@ def load_guides(collection):
                 "source": guide_file.name
             })
 
+        # Add chunks to batch
         for chunk in chunks:
             documents.append(chunk["content"])
             metadatas.append({
@@ -427,14 +352,34 @@ def load_guides(collection):
             ids.append(f"doc_{doc_id}")
             doc_id += 1
 
+    # Batch insert into ChromaDB
     if documents:
         collection.add(documents=documents, metadatas=metadatas, ids=ids)
 
     return len(documents)
 
 
-def generate_response(query, context, api_key):
-    """Generate a response using GPT-4o-mini"""
+# =============================================================================
+# AI RESPONSE GENERATION
+# =============================================================================
+
+def generate_response(query: str, context: List[str], api_key: str) -> str:
+    """
+    Generate a response using GPT-4o-mini with RAG context.
+
+    Args:
+        query: User's question
+        context: List of relevant text chunks from knowledge base
+        api_key: OpenAI API key
+
+    Returns:
+        str: Generated response
+
+    Prompt Engineering Notes:
+        - System prompt establishes expert persona
+        - Context is clearly separated from question
+        - Temperature 0.3 for factual, consistent responses
+    """
     from openai import OpenAI
     client = OpenAI(api_key=api_key)
 
@@ -443,25 +388,50 @@ Answer questions using ONLY the provided context. Be specific with exact numbers
 Format your response clearly with short paragraphs. Use bullet points only when listing steps or items.
 If the context doesn't contain enough information, say so honestly."""
 
+    # Join context chunks with clear separators
     context_text = "\n\n---\n\n".join(context)
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=CHAT_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Context:\n{context_text}\n\nQuestion: {query}"}
         ],
-        temperature=0.3,
-        max_tokens=1000
+        temperature=TEMPERATURE,
+        max_tokens=MAX_RESPONSE_TOKENS
     )
+
     return response.choices[0].message.content
 
 
-def analyze_image(image_bytes, question, context, api_key):
-    """Analyze an image using GPT-4o vision"""
+def analyze_image(image_bytes: bytes, question: str, context: List[str], api_key: str) -> str:
+    """
+    Analyze an uploaded image using GPT-4o Vision with RAG context.
+
+    This enables technicians to upload photos of:
+    - Equipment with error codes
+    - Water conditions (green pools, cloudiness)
+    - Damaged equipment
+    - Unknown parts for identification
+
+    Args:
+        image_bytes: Raw image bytes
+        question: User's question about the image
+        context: Relevant knowledge base chunks
+        api_key: OpenAI API key
+
+    Returns:
+        str: Analysis and recommendations
+
+    Technical Notes:
+        - Image is base64 encoded for API transmission
+        - GPT-4o (not mini) required for vision capabilities
+        - Context augments visual analysis with specific procedures
+    """
     from openai import OpenAI
     client = OpenAI(api_key=api_key)
 
+    # Encode image for API
     base64_image = base64.b64encode(image_bytes).decode('utf-8')
 
     system_prompt = """You are Skimmer Assistant, a pool service expert with vision capabilities.
@@ -472,7 +442,7 @@ Be specific with exact numbers and procedures from the context. If you can't ide
     context_text = "\n\n---\n\n".join(context) if context else "No specific context found."
 
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model=VISION_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": [
@@ -480,14 +450,19 @@ Be specific with exact numbers and procedures from the context. If you can't ide
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
             ]}
         ],
-        temperature=0.3,
+        temperature=TEMPERATURE,
         max_tokens=1500
     )
+
     return response.choices[0].message.content
 
 
-def render_header():
-    """Render the Skimmer header"""
+# =============================================================================
+# UI COMPONENTS
+# =============================================================================
+
+def render_header() -> None:
+    """Render the Skimmer-branded header with logo."""
     st.markdown("""
     <div style="display: flex; align-items: center; justify-content: center; padding: 1.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid #E9EAEB;">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -504,8 +479,15 @@ def render_header():
     """, unsafe_allow_html=True)
 
 
-def render_hero():
-    """Render the hero section with quick actions and photo upload"""
+def render_hero() -> None:
+    """
+    Render the hero section shown when chat is empty.
+
+    Includes:
+    - Welcome message
+    - Photo upload prompt
+    - Quick action buttons for common questions
+    """
     st.markdown("""
     <div style="text-align: center; padding: 2rem 1rem; max-width: 600px; margin: 0 auto;">
         <h1 style="font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 700; color: #160F4E; margin-bottom: 0.75rem; letter-spacing: -0.02em;">What can I help you with?</h1>
@@ -513,7 +495,7 @@ def render_hero():
     </div>
     """, unsafe_allow_html=True)
 
-    # Photo upload section - prominent in main area
+    # Photo upload section
     st.markdown("""
     <div style="text-align: center; margin-bottom: 1rem;">
         <p style="font-family: 'Roboto', sans-serif; font-size: 0.9rem; color: #637381;">📷 Have a photo of an issue? Upload it below!</p>
@@ -536,13 +518,14 @@ def render_hero():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Quick action suggestions
+    # Quick action buttons
     st.markdown("""
     <div style="text-align: center; margin-bottom: 0.5rem;">
         <p style="font-family: 'Roboto', sans-serif; font-size: 0.85rem; color: #919EAB;">Or try a quick question:</p>
     </div>
     """, unsafe_allow_html=True)
 
+    # First row of quick actions
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("💧 Balance pH levels", use_container_width=True):
@@ -557,6 +540,7 @@ def render_hero():
             st.session_state.prefill = "How do I treat a green algae pool?"
             st.rerun()
 
+    # Second row of quick actions
     col4, col5, col6 = st.columns(3)
     with col4:
         if st.button("❄️ Winter closing", use_container_width=True):
@@ -572,14 +556,23 @@ def render_hero():
             st.rerun()
 
 
-def render_sources(metadatas):
-    """Render sources in a nice format"""
+def render_sources(metadatas: List[Dict]) -> None:
+    """
+    Render source citations for transparency.
+
+    Shows which knowledge base sections were used to generate the response.
+    This builds trust and allows users to verify information.
+
+    Args:
+        metadatas: List of metadata dicts with 'topic' and 'section' keys
+    """
     if not metadatas:
         return
 
+    # Deduplicate sources
     unique_sources = []
     seen = set()
-    for m in metadatas[:4]:
+    for m in metadatas[:4]:  # Limit to 4 sources
         key = f"{m['topic']}-{m['section']}"
         if key not in seen:
             seen.add(key)
@@ -599,25 +592,20 @@ def render_sources(metadatas):
             """, unsafe_allow_html=True)
 
 
-def main():
-    # Initialize session state
-    if "openai_api_key" not in st.session_state:
-        st.session_state.openai_api_key = ""
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "uploaded_image" not in st.session_state:
-        st.session_state.uploaded_image = None
-    if "kb_loaded" not in st.session_state:
-        st.session_state.kb_loaded = False
-    if "prefill" not in st.session_state:
-        st.session_state.prefill = None
+def render_sidebar(api_key: str, collection: Optional[chromadb.Collection]) -> None:
+    """
+    Render the sidebar with settings and controls.
 
-    api_key = get_api_key()
-
-    # Sidebar - Settings
+    Sections:
+    - API key input (if not configured)
+    - Knowledge base status and reload
+    - Photo upload (alternative location)
+    - Clear conversation button
+    """
     with st.sidebar:
         st.markdown("### ⚙️ Settings")
 
+        # API key input (only if not in secrets)
         if not (hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets):
             manual_key = st.text_input(
                 "OpenAI API Key",
@@ -634,27 +622,25 @@ def main():
         st.markdown("---")
         st.markdown("### 📚 Knowledge Base")
 
-        if api_key:
-            client, collection = init_chromadb(api_key)
-            if collection:
-                count = collection.count()
-                if count == 0:
-                    if st.button("📥 Load Knowledge Base", use_container_width=True):
-                        with st.spinner("Loading..."):
-                            loaded = load_guides(collection)
-                            st.session_state.kb_loaded = True
-                            st.success(f"✓ Loaded {loaded} chunks")
-                            st.rerun()
-                else:
-                    st.markdown(f'<div class="status-badge status-success">✓ {count} chunks ready</div>', unsafe_allow_html=True)
-                    if st.button("🔄 Reload", use_container_width=True):
-                        all_ids = collection.get()["ids"]
-                        if all_ids:
-                            collection.delete(ids=all_ids)
-                        load_guides(collection)
+        if api_key and collection:
+            count = collection.count()
+            if count == 0:
+                if st.button("📥 Load Knowledge Base", use_container_width=True):
+                    with st.spinner("Loading..."):
+                        loaded = load_guides(collection)
+                        st.session_state.kb_loaded = True
+                        st.success(f"✓ Loaded {loaded} chunks")
                         st.rerun()
+            else:
+                st.markdown(f'<div class="status-badge status-success">✓ {count} chunks ready</div>', unsafe_allow_html=True)
+                if st.button("🔄 Reload", use_container_width=True):
+                    all_ids = collection.get()["ids"]
+                    if all_ids:
+                        collection.delete(ids=all_ids)
+                    load_guides(collection)
+                    st.rerun()
 
-        # Image upload in sidebar
+        # Sidebar image upload
         st.markdown("---")
         st.markdown("### 📷 Photo Analysis")
         st.caption("Upload a photo to get help identifying issues")
@@ -671,20 +657,62 @@ def main():
         else:
             st.session_state.uploaded_image = None
 
-        # Clear chat button
+        # Clear conversation
         st.markdown("---")
         if st.button("🗑️ Clear conversation", use_container_width=True):
             st.session_state.messages = []
             st.rerun()
 
-    # Main content
+
+# =============================================================================
+# MAIN APPLICATION
+# =============================================================================
+
+def main() -> None:
+    """
+    Main application entry point.
+
+    Flow:
+    1. Initialize session state
+    2. Load CSS and render header
+    3. Handle API key and database initialization
+    4. Render chat interface
+    5. Process user queries
+    """
+    # Initialize session state variables
+    if "openai_api_key" not in st.session_state:
+        st.session_state.openai_api_key = ""
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "uploaded_image" not in st.session_state:
+        st.session_state.uploaded_image = None
+    if "kb_loaded" not in st.session_state:
+        st.session_state.kb_loaded = False
+    if "prefill" not in st.session_state:
+        st.session_state.prefill = None
+
+    # Load styling
+    load_custom_css()
+
+    # Get API key
+    api_key = get_api_key()
+
+    # Initialize database
+    client, collection = None, None
+    if api_key:
+        client, collection = init_chromadb(api_key)
+
+    # Render sidebar
+    render_sidebar(api_key, collection)
+
+    # Render main header
     render_header()
 
+    # Check prerequisites
     if not api_key:
         st.info("👈 Enter your OpenAI API key in the sidebar to get started")
         return
 
-    client, collection = init_chromadb(api_key)
     if not collection:
         st.error("Failed to initialize. Please check your API key.")
         return
@@ -693,7 +721,7 @@ def main():
         st.warning("📥 Click 'Load Knowledge Base' in the sidebar to get started")
         return
 
-    # Show hero if no messages
+    # Show hero section if no messages yet
     if not st.session_state.messages:
         render_hero()
 
@@ -709,7 +737,7 @@ def main():
     if prefill_text:
         st.session_state.prefill = None
 
-    # Image upload indicator
+    # Show image upload indicator
     if st.session_state.get("uploaded_image"):
         st.info("📷 **Image attached** - Ask a question about it below!")
 
@@ -724,19 +752,24 @@ def main():
     if prefill_text and not prompt:
         prompt = prefill_text
 
+    # Process user input
     if prompt:
+        # Add user message to history
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
+        # Generate response
         with st.chat_message("assistant", avatar="🏊"):
             has_image = st.session_state.get("uploaded_image") is not None
 
             with st.spinner("Thinking..." if not has_image else "Analyzing image..."):
-                results = collection.query(query_texts=[prompt], n_results=5)
+                # Retrieve relevant context
+                results = collection.query(query_texts=[prompt], n_results=CHUNK_RESULTS)
                 context = results["documents"][0] if results and results["documents"] and results["documents"][0] else []
                 metadatas = results["metadatas"][0] if results and results["metadatas"] and results["metadatas"][0] else []
 
+                # Generate response (with or without image)
                 if has_image:
                     response = analyze_image(
                         st.session_state.uploaded_image,
@@ -744,7 +777,7 @@ def main():
                         context,
                         api_key
                     )
-                    st.session_state.uploaded_image = None
+                    st.session_state.uploaded_image = None  # Clear after use
                 elif context:
                     response = generate_response(prompt, context, api_key)
                 else:
@@ -752,6 +785,7 @@ def main():
 
                 st.markdown(response)
 
+                # Show sources and save to history
                 if metadatas:
                     render_sources(metadatas)
                     st.session_state.messages.append({
@@ -766,5 +800,6 @@ def main():
                     })
 
 
+# Entry point
 if __name__ == "__main__":
     main()
