@@ -1,0 +1,21 @@
+# Pool Service Knowledge Base - Dependencies
+
+# YouTube transcript extraction
+youtube-transcript-api>=0.6.0
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+
+# Reddit API
+praw>=7.7.0
+
+# Podcast transcription
+assemblyai>=0.17.0
+feedparser>=6.0.0
+
+# Data processing
+tqdm>=4.64.0
+python-dotenv>=1.0.0
+
+# Optional: For more advanced NLP processing
+# spacy>=3.5.0
+# sentence-transformers>=2.2.0

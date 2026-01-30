@@ -1,0 +1,245 @@
+{
+  "youtube_channels": [
+    {
+      "name": "Swim University",
+      "creator": "Matt Giovanisci",
+      "url": "https://www.youtube.com/@SwimUniversity",
+      "channel_id": "UCpS3qJfJFyJsPIaEtvjA8mA",
+      "focus": "Homeowner-focused, excellent fundamentals for new techs",
+      "content_count": "1300+ videos",
+      "topics": ["water chemistry", "equipment troubleshooting", "maintenance"],
+      "priority": "high",
+      "difficulty_level": "beginner"
+    },
+    {
+      "name": "SPL - Swimming Pool Learning",
+      "creator": "David Van Brunt (The Pool Guy)",
+      "url": "https://www.youtube.com/@SPL",
+      "website": "https://www.swimmingpoollearning.com",
+      "focus": "Pool service professionals (35+ years experience)",
+      "content_count": "1800+ episodes",
+      "topics": ["service route tactics", "equipment assessments", "daily operations"],
+      "priority": "high",
+      "difficulty_level": "intermediate"
+    },
+    {
+      "name": "Chlorine King Pool Service",
+      "creator": "Erik Taylor",
+      "url": "https://www.youtube.com/@ChlorineKingPoolService",
+      "website": "https://www.chlorinekingpools.com/free-help/youtube/",
+      "focus": "Pool service business owners and technicians",
+      "topics": ["equipment reviews", "troubleshooting", "business strategies"],
+      "priority": "high",
+      "difficulty_level": "intermediate"
+    },
+    {
+      "name": "BCS Pool Pros, LLC",
+      "creator": "Rich & Lisa Cox",
+      "url": "https://www.youtube.com/@BCSPoolPros",
+      "focus": "New pool technician training (step-by-step modules)",
+      "topics": ["brushing", "chemical testing", "saltwater systems", "onboarding"],
+      "priority": "high",
+      "difficulty_level": "beginner",
+      "notes": "Training modules specifically designed for onboarding new techs"
+    },
+    {
+      "name": "River Pools",
+      "url": "https://www.youtube.com/@RiverPools",
+      "focus": "Fiberglass pool installation and maintenance",
+      "topics": ["fiberglass maintenance", "installation", "pool orientation"],
+      "priority": "medium",
+      "difficulty_level": "intermediate"
+    },
+    {
+      "name": "Inyo Pools",
+      "url": "https://www.youtube.com/@InyoPools",
+      "website": "https://www.inyopools.com",
+      "focus": "DIY pool owners and service professionals",
+      "content_count": "400+ videos, 300+ blog articles",
+      "topics": ["how-to guides", "equipment guides", "troubleshooting"],
+      "priority": "high",
+      "difficulty_level": "beginner"
+    },
+    {
+      "name": "Ask the Pool Guy",
+      "creator": "Al Curtis",
+      "url": "https://www.youtube.com/c/Askthepoolguy",
+      "website": "https://askthepoolguy.com",
+      "focus": "Pool construction, design, and service (23+ years)",
+      "topics": ["construction", "design", "service"],
+      "priority": "medium",
+      "difficulty_level": "intermediate"
+    }
+  ],
+  "podcasts": [
+    {
+      "name": "The Pool Guy Podcast Show",
+      "host": "David Van Brunt (SPL)",
+      "url": "https://the-pool-guy-podcast-show.onpodium.com/",
+      "frequency": "Monday-Friday (M: 20-25min, T-F: 5-6min MiniCasts)",
+      "episode_count": "1800+",
+      "topics": ["water chemistry", "equipment", "service tactics", "route management"],
+      "priority": "high"
+    },
+    {
+      "name": "Pool Chasers Podcast",
+      "hosts": "Greg Villafana & Justin 'Bearded Plumber' Buoy",
+      "url": "https://www.poolchasers.com",
+      "youtube": "https://www.youtube.com/@poolchasers",
+      "episode_count": "284+",
+      "episode_length": "45-90 minutes",
+      "topics": ["marketing", "tech trends", "product innovation", "business growth"],
+      "priority": "high"
+    },
+    {
+      "name": "Talking Pools Podcast",
+      "host": "Rudy Stankowitz",
+      "focus": "30-year veteran covering pool care",
+      "episode_length": "30-50 minutes",
+      "topics": ["pool care", "chemistry", "equipment"],
+      "priority": "medium"
+    },
+    {
+      "name": "Pool Nation Podcast",
+      "hosts": "Edgar De Jesus, John 'JJ Flawless', Zac 'The Pool Boy' Nicholas",
+      "episode_length": "60-90 minutes",
+      "topics": ["business growth", "water chemistry", "tech trends"],
+      "priority": "medium"
+    },
+    {
+      "name": "Chlorine King Podcast",
+      "host": "Erik Taylor",
+      "episode_length": "~22 minutes",
+      "topics": ["practical advice for pool service pros"],
+      "priority": "medium"
+    },
+    {
+      "name": "Pool Magazine Podcast",
+      "host": "Joe Trusty",
+      "url": "https://www.poolmagazine.com/pool-magazine-podcast/",
+      "episode_length": "20-30 minutes",
+      "topics": ["industry trends", "tech innovations", "safety", "design"],
+      "priority": "medium"
+    },
+    {
+      "name": "Let's Talk About Pools",
+      "host": "Lauren Broom (Space Coast Pool School)",
+      "episode_length": "30-60 minutes",
+      "topics": ["water chemistry", "equipment", "business strategies", "safety"],
+      "priority": "medium"
+    },
+    {
+      "name": "Rule Your Pool",
+      "hosts": "Eric Knight & Jared Brimhall (Orenda Technologies)",
+      "topics": ["proactive pool chemistry", "LSI balancing"],
+      "priority": "high"
+    }
+  ],
+  "educational_programs": [
+    {
+      "name": "Orenda Technologies",
+      "url": "https://www.orendatech.com",
+      "academy": "https://academy.orendatech.com",
+      "resources": ["Orenda Calculator app", "Free training courses"],
+      "focus": "Proactive pool chemistry, Four Pillars methodology",
+      "topics": ["LSI balancing", "water chemistry fundamentals"],
+      "priority": "high"
+    },
+    {
+      "name": "Pool Training Academy",
+      "url": "https://www.pooltrainingacademy.com",
+      "certification": "CPO Certification (100% online)",
+      "priority": "medium"
+    },
+    {
+      "name": "Aquatic Training Institute",
+      "url": "https://aquatictraininginstitute.com",
+      "certification": "Certified Pool Technician (CPT)",
+      "duration": "30 days self-paced",
+      "languages": ["English", "Spanish"],
+      "priority": "medium"
+    },
+    {
+      "name": "Pool Certs",
+      "url": "https://poolcerts.com",
+      "certification": "CPO certification (virtual)",
+      "format": "Self-paced + Zoom review + exam",
+      "priority": "medium"
+    },
+    {
+      "name": "Pool & Hot Tub Alliance (PHTA)",
+      "certifications": ["CST - Certified Pool & Spa Service Technician", "CSP - Certified Service Professional"],
+      "priority": "medium"
+    }
+  ],
+  "forums_communities": [
+    {
+      "name": "Trouble Free Pool",
+      "url": "https://www.troublefreepool.com",
+      "pool_school": "https://www.troublefreepool.com/pool_school/",
+      "focus": "SLAM method, water chemistry, DIY pool maintenance",
+      "content_type": "forum discussions, educational articles",
+      "priority": "high"
+    },
+    {
+      "name": "Reddit r/pools",
+      "url": "https://www.reddit.com/r/pools",
+      "focus": "Homeowner and professional troubleshooting",
+      "content_type": "discussions, Q&A",
+      "priority": "high"
+    }
+  ],
+  "facebook_groups": [
+    {
+      "name": "Swimming Pool Service and Repair Techs",
+      "url": "https://www.facebook.com/groups/Pooltechs/"
+    },
+    {
+      "name": "Pool Cleaning Services",
+      "url": "https://www.facebook.com/groups/1132063710596395/"
+    },
+    {
+      "name": "Pool Cleaning Mafia",
+      "url": "https://www.facebook.com/groups/153955789605840/"
+    },
+    {
+      "name": "Swimming Pool Group for Professionals",
+      "url": "https://www.facebook.com/groups/2771675326194801/"
+    }
+  ],
+  "manufacturer_resources": [
+    {
+      "name": "Hayward Pool Products",
+      "content_type": "YouTube equipment training",
+      "priority": "high"
+    },
+    {
+      "name": "Pentair",
+      "content_type": "Product training videos, webinars",
+      "priority": "high"
+    },
+    {
+      "name": "Leslie's Pool Supplies",
+      "content_type": "Blog, YouTube product education",
+      "priority": "medium"
+    },
+    {
+      "name": "Poolwerx",
+      "content_type": "YouTube service techniques",
+      "priority": "medium"
+    }
+  ],
+  "additional_resources": [
+    {
+      "name": "Genesis Training",
+      "focus": "Advanced pool construction, hydraulics, water features",
+      "priority": "low"
+    },
+    {
+      "name": "Explore Industries",
+      "url": "https://exploreindustries.com",
+      "focus": "Fiberglass pool installation training (Explore Dealer Academy)",
+      "priority": "low"
+    }
+  ]
+}

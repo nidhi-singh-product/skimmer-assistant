@@ -1,0 +1,25 @@
+{
+  "source": "youtube",
+  "source_type": "video_transcript",
+  "video_id": "ERuE5-CkEkU",
+  "url": "https://www.youtube.com/watch?v=ERuE5-CkEkU",
+  "title": "How To BALANCE POOL WATER Chemistry | Swim University",
+  "description": "Learn how to balance your pool water chemistry using the saturation index...",
+  "content": "hey this is Matt from Swim University and in this video I'm going to show you how to balance your pool water chemistry. Now pool water chemistry might seem complicated but I promise it's actually pretty simple once you understand the basics. The key is understanding the relationship between pH, total alkalinity, calcium hardness, and cyanuric acid. Let's start with pH. pH is the measure of how acidic or basic your pool water is. The ideal range for pool water is between 7.4 and 7.6. If your pH is too low, the water is acidic and can corrode your pool equipment and irritate swimmers' eyes and skin. If it's too high, the water is basic and can cause scaling and cloudy water. To raise pH, you add soda ash. To lower it, you add muriatic acid or dry acid. Now let's talk about total alkalinity. Total alkalinity acts as a buffer for pH, helping to keep it stable. The ideal range is 80 to 120 parts per million. If your alkalinity is too low, your pH will bounce around a lot, making it hard to maintain. If it's too high, it can cause cloudy water and make it difficult to adjust pH. To raise alkalinity, add baking soda. To lower it, you'll need to add acid. Calcium hardness is next. This measures the amount of dissolved calcium in your water. The ideal range is 200 to 400 ppm. If calcium hardness is too low, the water becomes aggressive and will try to get calcium from wherever it can, including your pool surfaces and equipment, causing etching and corrosion. If it's too high, you'll get calcium deposits and scaling. To raise calcium hardness, add calcium chloride. Unfortunately, there's no chemical to lower it - you'll need to partially drain and refill with fresh water. Finally, we have cyanuric acid, also known as stabilizer or conditioner. This protects your chlorine from being destroyed by the sun's UV rays. The ideal range is 30 to 50 ppm for regular pools, though some say up to 80 ppm is acceptable for outdoor pools. If CYA is too low, your chlorine will dissipate quickly in sunlight. If it's too high, it reduces chlorine effectiveness, a condition called chlorine lock. To raise CYA, add stabilizer. To lower it, you need to dilute by partially draining and refilling. Now here's the key: these four factors all work together. You want to maintain them all within their ideal ranges for properly balanced water. I recommend testing your water at least once a week, or more often during heavy use or hot weather. Use a quality test kit - I recommend the Taylor K-2006 test kit for accuracy. Start by testing and adjusting alkalinity first, then pH, then calcium hardness, and finally CYA. This order matters because each factor affects the others. For a more precise approach, you can use the Langelier Saturation Index, or LSI, which calculates whether your water is corrosive or scale-forming based on all these factors plus temperature. An LSI of zero is perfectly balanced. Negative values indicate corrosive water, positive values indicate scaling tendency. Keep your LSI between negative 0.3 and positive 0.3 for optimal balance. That's it for the basics of balancing pool water chemistry. If you found this helpful, make sure to subscribe and check out my Pool Care Video Course for more in-depth training on maintaining your pool like a pro.",
+  "topic": "water_chemistry",
+  "difficulty_level": "beginner",
+  "channel": "@SwimUniversity",
+  "word_count": 567,
+  "duration_seconds": 423,
+  "language": "en",
+  "is_auto_generated": false,
+  "extracted_at": "2026-01-28T10:00:00.000Z",
+  "metadata": {
+    "focus_area": "homeowner fundamentals"
+  },
+  "segments": [
+    {"text": "hey this is Matt from Swim University", "start": 0.0, "duration": 2.1},
+    {"text": "and in this video I'm going to show you", "start": 2.1, "duration": 1.8},
+    {"text": "how to balance your pool water chemistry", "start": 3.9, "duration": 2.0}
+  ]
+}

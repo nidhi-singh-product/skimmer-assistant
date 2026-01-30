@@ -1,0 +1,37 @@
+{
+  "source": "reddit",
+  "source_type": "discussion",
+  "post_id": "abc123",
+  "url": "https://reddit.com/r/pools/comments/abc123",
+  "subreddit": "pools",
+  "title": "Green pool after vacation - need help!",
+  "content": "Came back from a 2 week vacation to find my pool completely green. It was crystal clear when I left. I've been fighting this for 3 days now and it's still green. Here's my current readings: FC: 0 (yes, zero) pH: 7.8 CYA: 90 TA: 120 CH: 350 Pool is 20,000 gallons, vinyl liner. What do I do?\n\n--- TOP ANSWERS ---\n\nAnswer 1 (score: 45):\nYou need to SLAM your pool (Shock Level And Maintain). With a CYA of 90, you need to bring your FC up to 35ppm and MAINTAIN it there until you pass all three SLAM criteria: 1) Water is clear, 2) CC is 0.5 or less, 3) You don't lose more than 1ppm overnight. First things first - brush the entire pool thoroughly. Brush the walls, floor, steps, everything. Then add enough liquid chlorine to bring FC to 35. For a 20k gallon pool at 0 FC, you'll need about 12 gallons of 10% liquid chlorine to get there. Test every few hours and add more chlorine as needed. You'll likely go through a LOT of chlorine the first few days. Keep your filter running 24/7 and clean/backwash as needed. The algae will die and your filter will get clogged. This is normal. Don't give up - it might take a week or more with CYA that high.\n\nAnswer 2 (score: 28):\nOne thing to add - your CYA is really high at 90. Once you clear this algae, consider draining about 1/3 of your water and refilling to bring that CYA down to around 50-60. High CYA makes chlorine less effective, which is probably why your pool went green so fast when you weren't maintaining it. With CYA at 90, you need to maintain FC around 7-9ppm normally (not just when SLAMming). That's a lot of chlorine!\n\nAnswer 3 (score: 15):\nDon't waste money on 'shock' products from the pool store. Get liquid chlorine (sodium hypochlorite) from Walmart, Lowes, or a pool supply store. 10% is standard. It's much cheaper and doesn't add CYA like dichlor or trichlor shock does. Your CYA is already too high - don't add more! Also, the pool store will try to sell you algaecide. Skip it. Chlorine kills algae. Algaecide is preventative at best and a waste of money at worst. Just keep that FC level up.",
+  "post_body": "Came back from a 2 week vacation to find my pool completely green. It was crystal clear when I left. I've been fighting this for 3 days now and it's still green. Here's my current readings: FC: 0 (yes, zero) pH: 7.8 CYA: 90 TA: 120 CH: 350 Pool is 20,000 gallons, vinyl liner. What do I do?",
+  "author": "frustrated_pool_owner",
+  "score": 67,
+  "upvote_ratio": 0.94,
+  "num_comments": 23,
+  "comments": [
+    {
+      "author": "slam_master",
+      "body": "You need to SLAM your pool (Shock Level And Maintain). With a CYA of 90, you need to bring your FC up to 35ppm and MAINTAIN it there until you pass all three SLAM criteria: 1) Water is clear, 2) CC is 0.5 or less, 3) You don't lose more than 1ppm overnight...",
+      "score": 45,
+      "created_utc": "2026-01-27T15:30:00Z"
+    },
+    {
+      "author": "pool_pro_mike",
+      "body": "One thing to add - your CYA is really high at 90. Once you clear this algae, consider draining about 1/3 of your water and refilling...",
+      "score": 28,
+      "created_utc": "2026-01-27T16:45:00Z"
+    }
+  ],
+  "topic": "algae",
+  "difficulty_level": "beginner",
+  "created_utc": "2026-01-27T14:00:00Z",
+  "extracted_at": "2026-01-28T10:00:00.000Z",
+  "metadata": {
+    "flair": "Help Needed",
+    "is_self": true,
+    "over_18": false
+  }
+}
