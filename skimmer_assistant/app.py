@@ -134,6 +134,21 @@ def load_custom_css() -> None:
             box-shadow: 0 0 0 3px rgba(37, 98, 149, 0.1) !important;
         }}
 
+        /* Chat input send button - Skimmer brand colors */
+        .stChatInput button {{
+            background: {COLORS['skimmer_dark']} !important;
+            border: none !important;
+        }}
+
+        .stChatInput button:hover {{
+            background: {COLORS['navy']} !important;
+        }}
+
+        .stChatInput button svg {{
+            fill: {COLORS['white']} !important;
+            stroke: {COLORS['white']} !important;
+        }}
+
         /* Sidebar styling */
         [data-testid="stSidebar"] {{
             background: {COLORS['white']};
@@ -568,7 +583,7 @@ def render_read_aloud_button(text: str, button_key: str) -> None:
                 speaking_{button_id} = true;
                 icon.textContent = '⏹️';
                 text.textContent = 'Stop';
-                btn.style.background = 'linear-gradient(135deg, #FB8B24 0%, #FF6B6B 100%)';
+                btn.style.background = 'linear-gradient(135deg, #FCA250 0%, #FB8B24 100%)';
             }}
         }}
 
