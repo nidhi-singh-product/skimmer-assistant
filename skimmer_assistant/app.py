@@ -774,7 +774,7 @@ def render_disclaimer() -> None:
             <br>Always verify critical information and follow manufacturer guidelines.
         </p>
         <p style="margin: 8px 0 0 0; font-size: 0.7rem;">
-            © 2025 Skimmer Pro · Pool Service Knowledge Base POC
+            © 2026 Skimmer Pro · Pool Service Knowledge Base POC
         </p>
     </div>
     """, unsafe_allow_html=True)
