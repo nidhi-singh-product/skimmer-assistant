@@ -921,7 +921,24 @@ def main() -> None:
         return
 
     if collection.count() == 0:
-        st.warning("📥 Click 'Load Knowledge Base' in the sidebar to get started")
+        # Show prominent load button on main page
+        st.markdown("""
+        <div style="text-align: center; padding: 3rem 1rem; max-width: 500px; margin: 2rem auto;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 600; color: #160F4E; margin-bottom: 0.5rem;">Welcome to Skimmer Assistant</h2>
+            <p style="font-family: 'Roboto', sans-serif; font-size: 1rem; color: #637381; margin-bottom: 2rem;">Load the knowledge base to start asking questions about pool service, water chemistry, and equipment.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Centered load button
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("📥 Load Knowledge Base", use_container_width=True, type="primary"):
+                with st.spinner("Loading knowledge base..."):
+                    loaded = load_guides(collection)
+                    st.session_state.kb_loaded = True
+                    st.success(f"✓ Loaded {loaded} chunks!")
+                    st.rerun()
         return
 
     # Show hero section if no messages yet
